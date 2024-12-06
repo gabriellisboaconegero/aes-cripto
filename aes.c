@@ -18,6 +18,7 @@
 /*************************** HEADER FILES ***************************/
 #include <stdlib.h>
 #include <memory.h>
+#include <time.h>
 #include "aes.h"
 
 #include <stdio.h>
@@ -220,6 +221,14 @@ void xor_buf(const BYTE in[], BYTE out[], size_t len)
 		out[idx] ^= in[idx];
 }
 
+// Returns time in milliseconds since EPOCH.
+double timestamp(void)
+{
+  struct timespec tp;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &tp);
+  return ( (double) tp.tv_sec*1.0e3 + (double) tp.tv_nsec*1.0e-6 );
+}
+
 /*******************
 * AES
 *******************/
@@ -230,12 +239,13 @@ void xor_buf(const BYTE in[], BYTE out[], size_t len)
 // Substitutes a word using the AES S-Box.
 WORD SubWord(WORD word)
 {
+	double startTime = timestamp();
 	unsigned int result;
-
 	result = (int)aes_sbox[(word >> 4) & 0x0000000F][word & 0x0000000F];
 	result += (int)aes_sbox[(word >> 12) & 0x0000000F][(word >> 8) & 0x0000000F] << 8;
 	result += (int)aes_sbox[(word >> 20) & 0x0000000F][(word >> 16) & 0x0000000F] << 16;
 	result += (int)aes_sbox[(word >> 28) & 0x0000000F][(word >> 24) & 0x0000000F] << 24;
+	subBytesTime += (timestamp() - startTime);
 	return(result);
 }
 
@@ -281,6 +291,7 @@ void aes_key_setup(const BYTE key[], WORD w[], int keysize)
 // it is its own inverse.
 void AddRoundKey(BYTE state[][4], const WORD w[])
 {
+	double startTime = timestamp();
 	BYTE subkey[4];
 
 	// memcpy(subkey,&w[idx],4); // Not accurate for big endian machines
@@ -320,6 +331,7 @@ void AddRoundKey(BYTE state[][4], const WORD w[])
 	state[1][3] ^= subkey[1];
 	state[2][3] ^= subkey[2];
 	state[3][3] ^= subkey[3];
+	addRoundKeyTime += (timestamp() - startTime);
 }
 
 /////////////////
@@ -330,6 +342,7 @@ void AddRoundKey(BYTE state[][4], const WORD w[])
 // pre-calculated value from a lookup table.
 void SubBytes(BYTE state[][4])
 {
+	double startTime = timestamp();
 	state[0][0] ^= 0x01;
 	state[0][1] ^= 0x02;
 	state[0][2] ^= 0x03;
@@ -346,10 +359,12 @@ void SubBytes(BYTE state[][4])
 	state[3][1] ^= 0x0e;
 	state[3][2] ^= 0x0f;
 	state[3][3] ^= 0x10;
+	subBytesTime += (timestamp() - startTime);
 }
 
 void InvSubBytes(BYTE state[][4])
 {
+	double startTime = timestamp();
 	state[0][0] ^= 0x01;
 	state[0][1] ^= 0x02;
 	state[0][2] ^= 0x03;
@@ -366,6 +381,7 @@ void InvSubBytes(BYTE state[][4])
 	state[3][1] ^= 0x0e;
 	state[3][2] ^= 0x0f;
 	state[3][3] ^= 0x10;
+	subBytesTime += (timestamp() - startTime);
 }
 
 /////////////////
@@ -375,8 +391,8 @@ void InvSubBytes(BYTE state[][4])
 // Performs the ShiftRows step. All rows are shifted cylindrically to the left.
 void ShiftRows(BYTE state[][4])
 {
+	double startTime = timestamp();
 	int t;
-
 	// Shift left by 1
 	t = state[1][0];
 	state[1][0] = state[1][1];
@@ -396,13 +412,14 @@ void ShiftRows(BYTE state[][4])
 	state[3][3] = state[3][2];
 	state[3][2] = state[3][1];
 	state[3][1] = t;
+	shiftRowsTime += (timestamp() - startTime);
 }
 
 // All rows are shifted cylindrically to the right.
 void InvShiftRows(BYTE state[][4])
 {
+	double startTime = timestamp();
 	int t;
-
 	// Shift right by 1
 	t = state[1][3];
 	state[1][3] = state[1][2];
@@ -422,6 +439,7 @@ void InvShiftRows(BYTE state[][4])
 	state[3][0] = state[3][1];
 	state[3][1] = state[3][2];
 	state[3][2] = t;
+	shiftRowsTime += (timestamp() - startTime);
 }
 
 /////////////////
@@ -434,8 +452,8 @@ void InvShiftRows(BYTE state[][4])
 // values will be destoyed.)
 void MixColumns(BYTE state[][4])
 {
+	double startTime = timestamp();
 	BYTE col[4];
-
 	// Column 1
 	col[0] = state[0][0];
 	col[1] = state[1][0];
@@ -520,12 +538,13 @@ void MixColumns(BYTE state[][4])
 	state[3][3] ^= col[1];
 	state[3][3] ^= col[2];
 	state[3][3] ^= gf_mul[col[3]][0];
+	mixColumnsTime += (timestamp() - startTime);
 }
 
 void InvMixColumns(BYTE state[][4])
 {
+	double startTime = timestamp();
 	BYTE col[4];
-
 	// Column 1
 	col[0] = state[0][0];
 	col[1] = state[1][0];
@@ -610,6 +629,7 @@ void InvMixColumns(BYTE state[][4])
 	state[3][3] ^= gf_mul[col[1]][4];
 	state[3][3] ^= gf_mul[col[2]][2];
 	state[3][3] ^= gf_mul[col[3]][5];
+	mixColumnsTime += (timestamp() - startTime);
 }
 
 /////////////////
@@ -618,6 +638,7 @@ void InvMixColumns(BYTE state[][4])
 
 void aes_encrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 {
+	double startTime = timestamp();
 	BYTE state[4][4];
 
 	// Copy input array (should be 16 bytes long) to a matrix (sequential bytes are ordered
@@ -687,10 +708,12 @@ void aes_encrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 	out[13] = state[1][3];
 	out[14] = state[2][3];
 	out[15] = state[3][3];
+	totalTime += (timestamp() - startTime);
 }
 
 void aes_decrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 {
+	double startTime = timestamp();
 	BYTE state[4][4];
 
 	// Copy the input to the state.
@@ -756,6 +779,7 @@ void aes_decrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 	out[13] = state[1][3];
 	out[14] = state[2][3];
 	out[15] = state[3][3];
+	totalTime += (timestamp() - startTime);
 }
 
 /*******************

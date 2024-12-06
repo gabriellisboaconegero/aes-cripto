@@ -6,6 +6,14 @@
 #include <unistd.h>
 #include "aes.h"
 
+#ifdef TIME
+double subBytesTime = 0;
+double shiftRowsTime = 0;
+double mixColumnsTime = 0;
+double addRoundKeyTime = 0;
+double totalTime = 0;
+#endif
+
 void usage(int argc, char **argv) {
     (void)(argc);
     fprintf(stderr, "Criptografar: \n");
@@ -63,13 +71,12 @@ int main(int argc, char **argv) {
         fprintf(stderr, "[ERRNO]: %s\n", strerror(errno));
     }
     // ============= Entrada =============
-
+    
     // =============  Chave  =============
     memcpy(inputKey, argv[2], 16);
     aes_key_setup(inputKey, key_schedule, AES_128);
     // =============  Chave  =============
 
-    
     // ============= ECB Loop =============
     size_t read_sz = 0;
     size_t total_sz = 0;
@@ -89,6 +96,14 @@ int main(int argc, char **argv) {
         aes_func(inBuf, outBuf, key_schedule, AES_128);
         fwrite(outBuf, 1, AES_BLOCK_SIZE, out_f);
     }
+#ifdef TIME
+    printf("SubBytesTime: %fms\n", subBytesTime);
+    printf("ShiftRowsTime: %fms\n", shiftRowsTime);
+    printf("MixColumnsTime: %fms\n", mixColumnsTime);
+    printf("AddRoundKeyTime: %fms\n", addRoundKeyTime);
+    printf("totalTime: %fms\n", subBytesTime + shiftRowsTime + mixColumnsTime + addRoundKeyTime);
+    printf("realTotalTime: %f ms\n", totalTime);
+#endif
 
     if (ferror(in_f)) {
         fprintf(stderr, "[ERRO]: Houve um erro ao ler o arquivo '%s'. Abortando\n", argv[3]);

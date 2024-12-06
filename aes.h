@@ -18,6 +18,13 @@
 #define AES_ENCRYPT 1
 #define AES_DECRYPT 2
 
+/***************************** EXTERNS ******************************/
+extern double subBytesTime;
+extern double shiftRowsTime;
+extern double mixColumnsTime;
+extern double addRoundKeyTime;
+extern double totalTime;
+
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;            // 8-bit byte
 typedef unsigned int WORD;             // 32-bit word, change to "long" for 16-bit machines
@@ -46,5 +53,10 @@ void aes_decrypt(const BYTE in[],             // 16 bytes of ciphertext
 ///////////////////
 int aes_test();
 int aes_ecb_test();
+
+///////////////////
+// Time functions
+///////////////////
+double timestamp(void);
 
 #endif   // AES_H
