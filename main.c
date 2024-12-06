@@ -7,11 +7,13 @@
 #include <openssl/aes.h>
 #include "aes.h"
 
+#ifdef TIME
 double subBytesTime = 0;
 double shiftRowsTime = 0;
 double mixColumnsTime = 0;
 double addRoundKeyTime = 0;
 double totalTime = 0;
+#endif
 
 void usage(int argc, char **argv) {
     (void)(argc);
