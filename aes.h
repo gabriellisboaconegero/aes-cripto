@@ -15,8 +15,10 @@
 /****************************** MACROS ******************************/
 #define AES_BLOCK_SIZE 16               // AES operates on 16 bytes at a time
 #define AES_128 128
-#define AES_ENCRYPT 1
-#define AES_DECRYPT 2
+#define LOCAL_AES_ENCRYPT 1
+#define LOCAL_AES_DECRYPT 2
+#define REAL_AES_ENCRYPT 3
+#define REAL_AES_DECRYPT 4
 
 /***************************** EXTERNS ******************************/
 extern double subBytesTime;

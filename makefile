@@ -1,5 +1,6 @@
 CFLAGS = -Wall -Wextra
 CLFLAGS = 
+LDFLAGS = -lcrypto -lssl
 
 all: CFLAGS += -O3 -mavx -march=native
 all: aes
@@ -25,7 +26,7 @@ main.o: main.c aes.h
 	gcc -c $(CFLAGS) main.c -o $@
 
 aes: main.o aes.o
-	gcc $(CLFLAGS) $^ -o $@
+	gcc $(CLFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -f *.o
