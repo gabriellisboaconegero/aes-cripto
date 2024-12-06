@@ -125,11 +125,11 @@ int main(int argc, char **argv) {
     }
 
     // Adiciona 16 bytes, onde o 1 bytes guarda quantos bytes foram lidos no ultimo bloco
-    if (to_crypt == REAL_AES_ENCRYPT) {
+    if (to_crypt == LOCAL_AES_ENCRYPT) {
         memset(outBuf, '\0', AES_BLOCK_SIZE);
         outBuf[0] = (BYTE)(AES_BLOCK_SIZE - read_sz) % AES_BLOCK_SIZE;
         fwrite(outBuf, 1, AES_BLOCK_SIZE, out_f);
-    } else {
+    } else if (to_crypt == LOCAL_AES_DECRYPT) {
         long new_size = total_sz - (AES_BLOCK_SIZE + (long)inBuf[0]);
 #ifdef DEBUG
         fprintf(stderr, "Ultimo bloco tem %d a mais bytes\n", AES_BLOCK_SIZE + (int)inBuf[0]);
