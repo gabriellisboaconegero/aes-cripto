@@ -239,13 +239,17 @@ double timestamp(void)
 // Substitutes a word using the AES S-Box.
 WORD SubWord(WORD word)
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	unsigned int result;
 	result = (int)aes_sbox[(word >> 4) & 0x0000000F][word & 0x0000000F];
 	result += (int)aes_sbox[(word >> 12) & 0x0000000F][(word >> 8) & 0x0000000F] << 8;
 	result += (int)aes_sbox[(word >> 20) & 0x0000000F][(word >> 16) & 0x0000000F] << 16;
 	result += (int)aes_sbox[(word >> 28) & 0x0000000F][(word >> 24) & 0x0000000F] << 24;
+#ifdef TIME
 	subBytesTime += (timestamp() - startTime);
+#endif
 	return(result);
 }
 
@@ -291,7 +295,9 @@ void aes_key_setup(const BYTE key[], WORD w[], int keysize)
 // it is its own inverse.
 void AddRoundKey(BYTE state[][4], const WORD w[])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	BYTE subkey[4];
 
 	// memcpy(subkey,&w[idx],4); // Not accurate for big endian machines
@@ -331,7 +337,9 @@ void AddRoundKey(BYTE state[][4], const WORD w[])
 	state[1][3] ^= subkey[1];
 	state[2][3] ^= subkey[2];
 	state[3][3] ^= subkey[3];
+#ifdef TIME
 	addRoundKeyTime += (timestamp() - startTime);
+#endif
 }
 
 /////////////////
@@ -342,7 +350,9 @@ void AddRoundKey(BYTE state[][4], const WORD w[])
 // pre-calculated value from a lookup table.
 void SubBytes(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	state[0][0] ^= 0x01;
 	state[0][1] ^= 0x02;
 	state[0][2] ^= 0x03;
@@ -359,12 +369,16 @@ void SubBytes(BYTE state[][4])
 	state[3][1] ^= 0x0e;
 	state[3][2] ^= 0x0f;
 	state[3][3] ^= 0x10;
+#ifdef TIME
 	subBytesTime += (timestamp() - startTime);
+#endif
 }
 
 void InvSubBytes(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	state[0][0] ^= 0x01;
 	state[0][1] ^= 0x02;
 	state[0][2] ^= 0x03;
@@ -381,7 +395,9 @@ void InvSubBytes(BYTE state[][4])
 	state[3][1] ^= 0x0e;
 	state[3][2] ^= 0x0f;
 	state[3][3] ^= 0x10;
+#ifdef TIME
 	subBytesTime += (timestamp() - startTime);
+#endif
 }
 
 /////////////////
@@ -391,7 +407,9 @@ void InvSubBytes(BYTE state[][4])
 // Performs the ShiftRows step. All rows are shifted cylindrically to the left.
 void ShiftRows(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	int t;
 	// Shift left by 1
 	t = state[1][0];
@@ -412,13 +430,17 @@ void ShiftRows(BYTE state[][4])
 	state[3][3] = state[3][2];
 	state[3][2] = state[3][1];
 	state[3][1] = t;
+#ifdef TIME
 	shiftRowsTime += (timestamp() - startTime);
+#endif
 }
 
 // All rows are shifted cylindrically to the right.
 void InvShiftRows(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	int t;
 	// Shift right by 1
 	t = state[1][3];
@@ -439,7 +461,9 @@ void InvShiftRows(BYTE state[][4])
 	state[3][0] = state[3][1];
 	state[3][1] = state[3][2];
 	state[3][2] = t;
+#ifdef TIME
 	shiftRowsTime += (timestamp() - startTime);
+#endif
 }
 
 /////////////////
@@ -452,7 +476,9 @@ void InvShiftRows(BYTE state[][4])
 // values will be destoyed.)
 void MixColumns(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	BYTE col[4];
 	// Column 1
 	col[0] = state[0][0];
@@ -538,12 +564,16 @@ void MixColumns(BYTE state[][4])
 	state[3][3] ^= col[1];
 	state[3][3] ^= col[2];
 	state[3][3] ^= gf_mul[col[3]][0];
+#ifdef TIME
 	mixColumnsTime += (timestamp() - startTime);
+#endif
 }
 
 void InvMixColumns(BYTE state[][4])
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	BYTE col[4];
 	// Column 1
 	col[0] = state[0][0];
@@ -629,7 +659,9 @@ void InvMixColumns(BYTE state[][4])
 	state[3][3] ^= gf_mul[col[1]][4];
 	state[3][3] ^= gf_mul[col[2]][2];
 	state[3][3] ^= gf_mul[col[3]][5];
+#ifdef TIME
 	mixColumnsTime += (timestamp() - startTime);
+#endif
 }
 
 /////////////////
@@ -638,7 +670,9 @@ void InvMixColumns(BYTE state[][4])
 
 void aes_encrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	BYTE state[4][4];
 
 	// Copy input array (should be 16 bytes long) to a matrix (sequential bytes are ordered
@@ -708,12 +742,16 @@ void aes_encrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 	out[13] = state[1][3];
 	out[14] = state[2][3];
 	out[15] = state[3][3];
+#ifdef TIME
 	totalTime += (timestamp() - startTime);
+#endif
 }
 
 void aes_decrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 {
+#ifdef TIME
 	double startTime = timestamp();
+#endif
 	BYTE state[4][4];
 
 	// Copy the input to the state.
@@ -779,7 +817,9 @@ void aes_decrypt(const BYTE in[], BYTE out[], const WORD key[], int keysize)
 	out[13] = state[1][3];
 	out[14] = state[2][3];
 	out[15] = state[3][3];
+#ifdef TIME
 	totalTime += (timestamp() - startTime);
+#endif
 }
 
 /*******************

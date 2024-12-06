@@ -19,11 +19,13 @@
 #define AES_DECRYPT 2
 
 /***************************** EXTERNS ******************************/
+#ifdef TIME
 extern double subBytesTime;
 extern double shiftRowsTime;
 extern double mixColumnsTime;
 extern double addRoundKeyTime;
 extern double totalTime;
+#endif
 
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;            // 8-bit byte
