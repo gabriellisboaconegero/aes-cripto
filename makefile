@@ -29,7 +29,7 @@ aes: main.o aes.o
 	gcc $(CLFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
-	rm -f *.o
+	rm -rf *.o testes comparacao.png data.csv
 
 purge: clean
 	rm -f aes

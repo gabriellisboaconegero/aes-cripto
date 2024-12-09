@@ -21,11 +21,11 @@ void usage(int argc, char **argv) {
     fprintf(stderr, "%s -e <128_key_string> <plaintext_file> <cipher_file>\n", argv[0]);
     fprintf(stderr, "Decriptografar: \n");
     fprintf(stderr, "%s -d <128_key_string> <cipher_file> <plaintext_file>\n", argv[0]);
-    fprintf(stderr, "\t128 bits/16 bytes key. Exemplo '123456789abcdef0'\n");
     fprintf(stderr, "Criptografar com openssl: \n");
     fprintf(stderr, "%s -se <128_key_string> <plaintext_file> <cipher_file>\n", argv[0]);
     fprintf(stderr, "Decriptografar com openssl: \n");
     fprintf(stderr, "%s -sd <128_key_string> <cipher_file> <plaintext_file>\n", argv[0]);
+    fprintf(stderr, "\t128 bits/16 bytes key. Exemplo '123456789abcdef0'\n");
 }
 
 int main(int argc, char **argv) {
@@ -71,14 +71,16 @@ int main(int argc, char **argv) {
 
     FILE *in_f = fopen(argv[3], "r");
     if (in_f == NULL) {
-        fprintf(stderr, "[ERRO]: Não foi possível abrir arquivo\n");
+        fprintf(stderr, "[ERRO]: Não foi possível abrir arquivo (%s)\n", argv[3]);
         fprintf(stderr, "[ERRNO]: %s\n", strerror(errno));
+        exit(1);
     }
 
     FILE *out_f = fopen(argv[4], "w+");
     if (out_f == NULL) {
-        fprintf(stderr, "[ERRO]: Não foi possível abrir arquivo\n");
+        fprintf(stderr, "[ERRO]: Não foi possível abrir arquivo (%s)\n", argv[4]);
         fprintf(stderr, "[ERRNO]: %s\n", strerror(errno));
+        exit(1);
     }
     // ============= Entrada =============
     
@@ -127,11 +129,11 @@ int main(int argc, char **argv) {
     }
 
     // Adiciona 16 bytes, onde o 1 bytes guarda quantos bytes foram lidos no ultimo bloco
-    if (to_crypt == LOCAL_AES_ENCRYPT) {
+    if (to_crypt == LOCAL_AES_ENCRYPT || to_crypt == REAL_AES_ENCRYPT) {
         memset(outBuf, '\0', AES_BLOCK_SIZE);
         outBuf[0] = (BYTE)(AES_BLOCK_SIZE - read_sz) % AES_BLOCK_SIZE;
         fwrite(outBuf, 1, AES_BLOCK_SIZE, out_f);
-    } else if (to_crypt == LOCAL_AES_DECRYPT) {
+    } else if (to_crypt == LOCAL_AES_DECRYPT || to_crypt == REAL_AES_DECRYPT) {
         long new_size = total_sz - (AES_BLOCK_SIZE + (long)inBuf[0]);
 #ifdef DEBUG
         fprintf(stderr, "Ultimo bloco tem %d a mais bytes\n", AES_BLOCK_SIZE + (int)inBuf[0]);
