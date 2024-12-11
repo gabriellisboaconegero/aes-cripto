@@ -17,7 +17,7 @@ prof: CLFLAGS += -pg
 prof: aes
 
 time: CFLAGS += -DTIME
-time: clean aes
+time: aes
 
 aes.o: aes.c aes.h
 	gcc -c $(CFLAGS) aes.c -o $@
